@@ -1,18 +1,13 @@
 package pd3.myhttp.http2;
 
 import pd3.myhttp.MyClient;
+import pd3.myhttp.MyHttpClientBuilder;
 
-import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
 /**
@@ -32,7 +27,7 @@ public class MyHttp2Client implements MyClient{
 
     @Override
     public void open() throws IOException {
-        socket = prepareSocket(url);
+        socket = MyHttpClientBuilder.openSocket(url,MyHttpClientBuilder.HTTP_2);
         os = socket.getOutputStream();
         is = socket.getInputStream();
 
@@ -85,53 +80,6 @@ public class MyHttp2Client implements MyClient{
         socket.close();
     }
 
-    private Socket prepareSocket(URL url) throws IOException {
-        if(url.getDefaultPort() == 80){
-            return new Socket(url.getHost(), url.getDefaultPort());
-        }
-
-        SSLSocket sslSocket = null;
-        // 証明書の検証をしない
-        TrustManager[] tm = { new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-
-            public void checkClientTrusted(X509Certificate[] xc, String type) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] xc, String type) {
-            }
-        } };
-
-        SSLContext ctx = null;
-        try {
-            ctx = SSLContext.getInstance("TLS");
-            ctx.init(null, tm, new SecureRandom());
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (KeyManagementException e) {
-            e.printStackTrace();
-        }
-
-        SSLSocketFactory sf = ctx.getSocketFactory();
-
-        sslSocket = (SSLSocket) sf.createSocket(url.getHost(), url.getDefaultPort());
-
-        SSLParameters p = sslSocket.getSSLParameters();
-        p.setProtocols(new String[]{"TLSv1","TLSv1.1","TLSv1.2"});
-        p.setCipherSuites(new String[]{"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"});
-        p.setApplicationProtocols(new String[]{"h2"});
-        sslSocket.setSSLParameters(p);
-
-
-
-
-        // Handshakeを行う前にalpn領域(ClientHello)に{0x02, 0x68, 0x32 }を送る設定する必要がある？
-        sslSocket.startHandshake();
-
-        return sslSocket;
-    }
 
     private String[] waitResponse(InputStream is) throws IOException {
         ArrayList<String> results = new ArrayList<String>();
@@ -151,7 +99,7 @@ public class MyHttp2Client implements MyClient{
             boolean breakLoop = false;
             switch (header[FrameBuilder.FRAME_TYPE]){
                 case FrameBuilder.TYPE_DATA:// data
-                    System.out.println("[LOG]TYPE_DATA");
+//                    System.out.println("[LOG]TYPE_DATA");
                     // ペイロードにデータが入っている
                     results.add(new String(payloadData, "UTF-8"));
 //                    System.out.println(result);
@@ -166,34 +114,34 @@ public class MyHttp2Client implements MyClient{
                     }
                     break;
                 case FrameBuilder.TYPE_HEADERS:// headers
-                    System.out.println("[LOG]TYPE_HEADERS");
+//                    System.out.println("[LOG]TYPE_HEADERS");
                     // ペイロードには付加的な情報が書いてある
                     break;
                 case FrameBuilder.TYPE_GOAWAY:// goaway
-                    System.out.println("[LOG]TYPE_GOAWAY");
+//                    System.out.println("[LOG]TYPE_GOAWAY");
                     breakLoop = true;
                     break;
                 case FrameBuilder.TYPE_PUSH_PROMISE:// push_promise
-                    System.out.println("[LOG]TYPE_PUSH_PROMISE");
+//                    System.out.println("[LOG]TYPE_PUSH_PROMISE");
                     pushPromiseCount++;
                     break;
                 case FrameBuilder.TYPE_SETTINGS:// settings
-                    System.out.println("[LOG]TYPE_SETTINGS");
+//                    System.out.println("[LOG]TYPE_SETTINGS");
                     break;
                 case FrameBuilder.TYPE_PRIORITY:// priorityy
-                    System.out.println("[LOG]TYPE_PRIORITY");
+//                    System.out.println("[LOG]TYPE_PRIORITY");
                     break;
                 case FrameBuilder.TYPE_RST_STREAM:// rst_stream
-                    System.out.println("[LOG]TYPE_RST_STREAM");
+//                    System.out.println("[LOG]TYPE_RST_STREAM");
                     break;
                 case FrameBuilder.TYPE_PING:// ping
-                    System.out.println("[LOG]TYPE_PING");
+//                    System.out.println("[LOG]TYPE_PING");
                     break;
                 case FrameBuilder.TYPE_WINDOW_UPDATE:// windows_update
-                    System.out.println("[LOG]TYPE_WINDOW_UPDATE");
+//                    System.out.println("[LOG]TYPE_WINDOW_UPDATE");
                     break;
                 case FrameBuilder.TYPE_CONTINUATION:// continuation
-                    System.out.println("[LOG]Continuation");
+//                    System.out.println("[LOG]Continuation");
                     break;
                 default:
                     System.err.println("[ERR]UNKNOWN FRAME");
