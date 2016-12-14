@@ -41,15 +41,6 @@ public class MyHttp2Client implements MyClient{
         os.write(data);
         os.flush();
 
-        // window_updateを送信
-        ByteBuffer bb = ByteBuffer.allocate(13);
-        bb.put(FrameBuilder.createHeaderFrame(FrameBuilder.TYPE_WINDOW_UPDATE, FrameBuilder.FLAG_NONE));
-        bb.put(new byte[]{0x7f, (byte) 0xff, 0x00,0x00});
-        byte[] windowUpdateFrame = bb.array();
-        windowUpdateFrame[3] = 0x04;// ペイロードの長さを指定
-        os.write(windowUpdateFrame);
-        os.flush();
-
         // setting frame を送信
 //        byte[] settingFrame = { 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00 };
         os.write(FrameBuilder.createHeaderFrame(FrameBuilder.TYPE_SETTINGS, FrameBuilder.FLAG_NONE));
@@ -60,6 +51,16 @@ public class MyHttp2Client implements MyClient{
         os.write(FrameBuilder.createHeaderFrame(FrameBuilder.TYPE_SETTINGS, FrameBuilder.FLAG_ACK));
         os.flush();
 
+/*      多分WINDOW_UPDATE関係で大きなサイズのファイルを送信できない
+        // window_updateを送信
+        ByteBuffer bb = ByteBuffer.allocate(13);
+        bb.put(FrameBuilder.createHeaderFrame(FrameBuilder.TYPE_WINDOW_UPDATE, FrameBuilder.FLAG_NONE));
+        bb.put(new byte[]{0x7f, (byte) 0xff, 0x00,0x00});
+        byte[] windowUpdateFrame = bb.array();
+        windowUpdateFrame[3] = 0x04;// ペイロードの長さを指定
+        os.write(windowUpdateFrame);
+        os.flush();
+*/
     }
 
     @Override

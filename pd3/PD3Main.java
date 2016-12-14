@@ -21,7 +21,7 @@ public class PD3Main {
             long start = System.nanoTime();
 
             client.open();
-            String[] results = client.get();
+            String[] results = client.get(new String[]{});
             client.close();
 
             long end = System.nanoTime();
