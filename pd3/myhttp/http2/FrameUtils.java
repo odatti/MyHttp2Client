@@ -3,7 +3,7 @@ package pd3.myhttp.http2;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
-public class FrameBuilder {
+public class FrameUtils {
     public static final int HEADER_FRAME_LENGTH = 9;
     public static final int FRAME_TYPE = 3;
     public static final int FRAME_FLAG = 4;
@@ -82,4 +82,13 @@ public class FrameBuilder {
     }
 
 
+
+
+    public static int getPayloadLength(byte[] b){
+        return (unsignedByte(b[0]) << 16) + (unsignedByte(b[1]) << 8) + unsignedByte(b[2]);
+    }
+
+    public static int unsignedByte(byte b){
+        return b & 0xFF;
+    }
 }

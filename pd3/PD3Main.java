@@ -1,7 +1,8 @@
 package pd3;
 
 import pd3.myhttp.MyClient;
-import pd3.myhttp.MyHttpClientBuilder;
+import pd3.myhttp.MyHttpClient;
+import pd3.myhttp.http2.MyHttp2Client;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -19,7 +20,11 @@ public class PD3Main {
         }
 
 
-        trial(MyHttpClientBuilder.create(urlHttp, MyHttpClientBuilder.HTTP_2));
+        // test
+        trial(urlHttp,MyClient.HTTP_2);
+        //        informURL(urlHttp);
+        //        informURL(urlHttps);
+
 
 
         /*
@@ -32,16 +37,16 @@ public class PD3Main {
 
                 switch (j){
                     case 0:
-                        trial(MyHttpClientBuilder.create(urlHttp,MyHttpClientBuilder.HTTP_1_1));
+                        trial(urlHttp,MyClient.HTTP_1_1);
                         break;
                     case 1:
-                        trial(MyHttpClientBuilder.create(urlHttps,MyHttpClientBuilder.HTTP_1_1));
+                        trial(urlHttps,MyClient.HTTP_1_1);
                         break;
                     case 2:
-                        trial(MyHttpClientBuilder.create(urlHttp,MyHttpClientBuilder.HTTP_2));
+                        trial(urlHttp,MyClient.HTTP_2);
                         break;
                     case 3:
-                        trial(MyHttpClientBuilder.create(urlHttps,MyHttpClientBuilder.HTTP_2));
+                        trial(urlHttps,MyClient.HTTP_2);
                         break;
                     default:
                         break;
@@ -66,12 +71,18 @@ public class PD3Main {
 
     }
 
-    public static void trial(MyClient client){
+    public static void trial(URL url, int version){
         try{
-            client.open();
-            //String[] results = client.get(new String[]{"index.html","myscript.js","myscript2.js","mystyle.css"});
-            client.get(new String[]{"index.html","myscript.js","myscript2.js","mystyle.css"});
-            client.close();
+            MyClient client = null;
+
+            // ソケット生成
+            if(version == MyClient.HTTP_2){
+                client =  new MyHttp2Client();
+            }else{
+                client = new MyHttpClient();
+            }
+
+            client.get(url, version, new String[]{"index.html","myscript.js","myscript2.js","mystyle.css"});
 
             /*
             for(String result : results){
@@ -81,6 +92,13 @@ public class PD3Main {
         }catch (IOException e){
             e.printStackTrace();
         }
+    }
+    public static void informURL(URL url){
+        System.out.println("host : "+url.getHost());
+        System.out.println("port : "+url.getDefaultPort());
+        System.out.println("path : "+url.getPath());
+        System.out.println("prot : "+url.getProtocol());
+        System.out.println("auth : "+url.getAuthority());
     }
 
 }

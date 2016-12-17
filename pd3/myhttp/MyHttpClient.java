@@ -5,34 +5,18 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MyHttpClient implements MyClient{
+public class MyHttpClient extends MyClient {
 
-    private Socket socket = null;
-    private BufferedWriter bufferedWriter = null;
-    private BufferedReader bufferedReader = null;
-
-    private URL url;
-
-    public MyHttpClient(URL url) {
-        this.url = url;
-    }
     @Override
-    public void open() throws IOException {
-        socket = MyHttpClientBuilder.openSocket(url, MyHttpClientBuilder.HTTP_1_1);
+    public String[] get(URL url, int version, String[] files) throws IOException {
+
+        Socket socket = createSocket(url, version);
         // KeepAlive機能をONにする
         socket.setKeepAlive(true);
-        bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-    }
-    @Override
-    public void close() throws IOException {
-        bufferedWriter.close();
-        bufferedReader.close();
-        socket.close();
-    }
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-    @Override
-    public String[] get(String[] files) throws IOException {
+
         ArrayList<String> results = new ArrayList<String>();
 
         // HTTPリクエスト送信
@@ -54,6 +38,11 @@ public class MyHttpClient implements MyClient{
 //            System.out.println(line);
         }
         results.add(result);
+
+
+        bufferedWriter.close();
+        bufferedReader.close();
+        socket.close();
 
         return results.toArray(new String[0]);
     }
