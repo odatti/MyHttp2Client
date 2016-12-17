@@ -89,6 +89,10 @@ public class MyHttp2Client implements MyClient{
             byte[] header = new byte[FrameBuilder.HEADER_FRAME_LENGTH];
             is.readNBytes(header, 0, header.length);
 
+            // TODO 多分ペイロードの読み込みがWINDOW_SIZE?を越えると読み込めなくなるから
+            // 残りのWINDOW_SIZEを計測しながら分割して読み込む必要があると思う
+            // 多分全体で80kb読み込んだらリセットかけないといけないんじゃないかな？
+
             // ヘッダからペイロードを取得し、ペイロードがあればそれを読み込む
             int payload = getPayloadLength(header);
             byte[] payloadData = new byte[payload];

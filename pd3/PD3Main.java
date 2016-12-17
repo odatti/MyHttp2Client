@@ -18,6 +18,11 @@ public class PD3Main {
             e.printStackTrace();
         }
 
+
+        trial(MyHttpClientBuilder.create(urlHttp, MyHttpClientBuilder.HTTP_2));
+
+
+        /*
         String[] trials = {"平文　（HTTP/1.1）: ","暗号化（HTTP/1.1）: ","平文　（HTTP/2）  : ","暗号化（HTTP/2）  : "};
         int tryNum = 20;
         for(int j = 0;j < 4;j++){
@@ -56,6 +61,7 @@ public class PD3Main {
             System.out.println(trials[j] + sum / tryNum  + "ms");
 
         }
+        */
 
 
     }
