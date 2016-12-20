@@ -9,6 +9,6 @@ cd ../
 if [ "$1" = "run" ]
 then
 	cd ../out
-	java pd3.PD3Main
+	java pd3.PD3Main $2 $3
 	cd ../src
 fi

@@ -1,6 +1,4 @@
-package pd3.myhttp.http2;
-
-import pd3.myhttp.MyClient;
+package pd3.myhttp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,15 +7,14 @@ import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 
-/**
- * Created by shoichi on 2016/12/14.
- */
 public class MyHttp2Client extends MyClient {
 
+    public MyHttp2Client(){
+        super(HTTP_2);
+    }
     @Override
-    public String[] get(URL url, int version, String[] files) throws IOException {
-
-        Socket socket = createSocket(url, version);
+    public String[] get(URL url, String[] files) throws IOException {
+        Socket socket = createSocket(url);
         OutputStream os = socket.getOutputStream();
         InputStream is = socket.getInputStream();
 
@@ -36,28 +33,15 @@ public class MyHttp2Client extends MyClient {
         os.write(FrameUtils.createHeaderFrame(FrameUtils.TYPE_SETTINGS, FrameUtils.FLAG_ACK));
         os.flush();
 
-
-/*      多分WINDOW_UPDATE関係で大きなサイズのファイルを送信できない
-        // window_updateを送信
-        ByteBuffer bb = ByteBuffer.allocate(13);
-        bb.put(FrameBuilder.createHeaderFrame(FrameBuilder.TYPE_WINDOW_UPDATE, FrameBuilder.FLAG_NONE));
-        bb.put(new byte[]{0x7f, (byte) 0xff, 0x00,0x00});
-        byte[] windowUpdateFrame = bb.array();
-        windowUpdateFrame[3] = 0x04;// ペイロードの長さを指定
-        os.write(windowUpdateFrame);
-        os.flush();
-*/
-
-
         byte[] header = FrameUtils.createHeaderFrame(FrameUtils.TYPE_HEADERS, (byte) (FrameUtils.FLAG_END_HEADERS | FrameUtils.FLAG_END_STREAM));
 
         byte[] headersFrame = FrameUtils.createHeadersFrame(url, header);
 
+        // headers frameの送信
         os.write(headersFrame);
         os.flush();
 
         String[] result = waitResponse(is, os);
-
 
         os.close();
         is.close();
@@ -103,10 +87,6 @@ public class MyHttp2Client extends MyClient {
                         pushPromiseCount--;
                     }
                     break;
-                case FrameUtils.TYPE_HEADERS:// headers
-//                    System.out.println("[LOG]TYPE_HEADERS");
-                    // ペイロードには付加的な情報が書いてある
-                    break;
                 case FrameUtils.TYPE_GOAWAY:// goaway
 //                    System.out.println("[LOG]TYPE_GOAWAY");
                     breakLoop = true;
@@ -117,24 +97,15 @@ public class MyHttp2Client extends MyClient {
                     break;
                 case FrameUtils.TYPE_SETTINGS:// settings
 //                    System.out.println("[LOG]TYPE_SETTINGS");
-                    break;
-                case FrameUtils.TYPE_PRIORITY:// priorityy
-//                    System.out.println("[LOG]TYPE_PRIORITY");
-                    break;
-                case FrameUtils.TYPE_RST_STREAM:// rst_stream
-//                    System.out.println("[LOG]TYPE_RST_STREAM");
-                    break;
-                case FrameUtils.TYPE_PING:// ping
-//                    System.out.println("[LOG]TYPE_PING");
-                    break;
                 case FrameUtils.TYPE_WINDOW_UPDATE:// windows_update
 //                    System.out.println("[LOG]TYPE_WINDOW_UPDATE");
-                    break;
+                case FrameUtils.TYPE_HEADERS:// headers
+//                    System.out.println("[LOG]TYPE_HEADERS");
+                case FrameUtils.TYPE_PRIORITY:// priorityy
+                case FrameUtils.TYPE_RST_STREAM:// rst_stream
+                case FrameUtils.TYPE_PING:// ping
                 case FrameUtils.TYPE_CONTINUATION:// continuation
-//                    System.out.println("[LOG]Continuation");
-                    break;
                 default:
-                    System.err.println("[ERR]UNKNOWN FRAME");
                     break;
             }
 

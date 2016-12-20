@@ -1,4 +1,4 @@
-package pd3.myhttp.http2;
+package pd3.myhttp;
 
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -26,6 +26,18 @@ public class FrameUtils {
     public static final byte TYPE_WINDOW_UPDATE = 0x08;
     public static final byte TYPE_CONTINUATION = 0x09;
 
+    /* GOAWAY ペイロードのフォーマット
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |R|                  Last-Stream-ID (31)                        |
+    +-+-------------------------------------------------------------+
+    |                      Error Code (32)                          |
+    +---------------------------------------------------------------+
+    |                  Additional Debug Data (*)                    |
+    +---------------------------------------------------------------+
+
+     */
     public static final byte[] GOAWAY_FRAME = { 0x00, 0x00, 0x08, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x00 };
 
 
@@ -50,7 +62,6 @@ public class FrameUtils {
         // 圧縮->0 , 7byte -> :scheme
         byte[] scheme = {0x00, 0x07, 0x3a, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x65};
         byte[] schemeData = url.getProtocol().getBytes();
-
 
         // 圧縮->0 , 10byte -> :authority
         byte[] authority = {0x00, 0x0a, 0x3a, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x74, 0x79};
@@ -81,11 +92,8 @@ public class FrameUtils {
         return bb.array();
     }
 
-
-
-
-    public static int getPayloadLength(byte[] b){
-        return (unsignedByte(b[0]) << 16) + (unsignedByte(b[1]) << 8) + unsignedByte(b[2]);
+    public static int getPayloadLength(byte[] payloadLength){
+        return (unsignedByte(payloadLength[0]) << 16) + (unsignedByte(payloadLength[1]) << 8) + unsignedByte(payloadLength[2]);
     }
 
     public static int unsignedByte(byte b){

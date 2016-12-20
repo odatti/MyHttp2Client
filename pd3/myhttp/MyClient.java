@@ -1,6 +1,5 @@
 package pd3.myhttp;
 
-
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.Socket;
@@ -13,7 +12,16 @@ import java.security.cert.X509Certificate;
 public abstract class MyClient {
     public static final int HTTP_1_1 = 0;
     public static final int HTTP_2 = 1;
-    protected Socket createSocket(URL url, int version) throws IOException {
+
+    private int version;
+    protected MyClient(int version){
+        this.version = version;
+    }
+    private int getVersion(){
+        return version;
+    }
+
+    protected Socket createSocket(URL url) throws IOException {
         if(url.getProtocol().equals("http")){
             // httpならsocketをそのまま作成して返す
             return new Socket(url.getHost(), url.getDefaultPort());
@@ -51,17 +59,17 @@ public abstract class MyClient {
             p.setProtocols(new String[]{"TLSv1","TLSv1.1","TLSv1.2"});
             p.setCipherSuites(new String[]{"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"});
             // HTTP/2を使用する場合はALPNでプロトコルバージョンを伝達しなければならない
-            if(version == HTTP_2){
+            if(getVersion() == HTTP_2){
                 p.setApplicationProtocols(new String[]{"h2"});
             }
             sslSocket.setSSLParameters(p);
 
-            // Handshakeを行う前にalpn領域(ClientHello)に{0x02, 0x68, 0x32 }を送る設定する必要がある？
+            // Handshakeを行う前にalpn領域(ClientHello)に{0x02, 0x68, 0x32 }を送る設定する必要がある
             sslSocket.startHandshake();
 
             return sslSocket;
         }
     }
 
-    public abstract String[] get(URL url, int version, String[] files) throws IOException;
+    public abstract String[] get(URL url, String[] files) throws IOException;
 }
